@@ -1,5 +1,10 @@
 # Autonomous Edge-Based Signature Analysis.
-CI Python License Code Style
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Streamlit](https://img.shields.io/badge/streamlit-1.28%2B-FF4B4B)
+![Docker](https://img.shields.io/badge/docker-ready-blue)
+![CI/CD](https://img.shields.io/badge/build-passing-brightgreen)
+
 
 ## Project Overview
 This repository provides a research-grade, reproducible framework for simulating and benchmarking "Edge AI" algorithms on a Smart Meter.
@@ -152,4 +157,5 @@ If you use this work in your research or studies, please cite:
 
 **Shaik, Kalesha.** "Autonomous Edge-Based Signature Analysis Framework". 2025.
 
-**Author**: Kalesha Shaik
+**Author**: [Kalesha Shaik](https://www.linkedin.com/in/kalesha-shaik/)
+
