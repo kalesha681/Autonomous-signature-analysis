@@ -1,97 +1,155 @@
-# Autonomous Edge-Based Signature Analysis
+# Autonomous Edge-Based Signature Analysis.
+CI Python License Code Style
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![Streamlit](https://img.shields.io/badge/streamlit-1.28%2B-FF4B4B)
-![Docker](https://img.shields.io/badge/docker-ready-blue)
-![CI/CD](https://img.shields.io/badge/build-passing-brightgreen)
+## Project Overview
+This repository provides a research-grade, reproducible framework for simulating and benchmarking "Edge AI" algorithms on a Smart Meter.
 
-## Project Description
+It is designed for students, researchers, and engineers to understand how hybrid artificial intelligence can perform real-time power quality analysis on industrial IoT hardware. The simulation is powered by digital twin waveform generators, ensuring signal fidelity while remaining easy to run on any computer.
 
-This repository hosts a production-grade software prototype for a next-generation Smart Meter. Unlike traditional meters that simply log energy consumption, this system acts as a "Smart Meter with a Brain," capable of performing high-resolution power quality analysis directly at the edge.
+We implement and compare two fundamental inference architectures:
 
-The system utilizes a Hybrid AI architecture to diagnose electrical faults in real-time. It combines deterministic rule-based logic for identifying known issues (such as Voltage Sags, Swells, and Harmonic Distortion) with unsupervised machine learning (Isolation Forest) to detect anomalous behaviors that deviate from the established baseline. This approach addresses the "Data-Analysis Gap" in industrial IoT by converting raw high-frequency waveforms into actionable diagnostic insights before transmission.
+1.  **Rule-Based Logic**: The industry standard, deterministic and effective for known faults (ANSI C84.1 compliance).
+2.  **Unsupervised Learning (Isolation Forest)**: A robust machine learning model that detects unknown anomalies deviating from the baseline.
 
-## Reproducibility
+## Directory Structure
+Here is a guide to what you will find in this repository:
 
-This project is designed for ease of deployment and testing. There are two primary methods to run the application: using Docker (recommended for consistency) or a local Python environment.
+```text
+Autonomous-Edge-Based-Signature-Analysis/
+├── dashboard/                 # The main HMI package
+│   ├── app_main.py            # The main entry point. Run this to start!
+│   ├── components.py          # UI widgets and sidebar controls
+│   └── visualizations.py      # Plotly-based oscilloscope and spectrum views
+├── simulation/                # Digital Twin Engine
+│   ├── waveform_generator.py  # AC sine wave synthesis (50Hz/60Hz)
+│   └── fault_injector.py      # Physics-based fault algorithms (Sag, Swell, Harmonics)
+├── processing/                # Signal Processing Core
+│   ├── fft_core.py            # Fast Fourier Transform implementation
+│   └── feature_extractor.py   # RMS, Peak, and THD calculators
+├── inference/                 # The "Brain"
+│   ├── predictor_core.py      # Hybrid decision logic
+│   ├── anomaly_detector.py    # Isolation Forest (Scikit-Learn)
+│   └── signatures.py          # Fault definitions and thresholds
+├── data/                      # Data storage
+│   └── models/                # Serialized ML models (.pkl)
+├── tests/                     # Automated unit tests
+├── .github/                   # CI/CD configuration for GitHub Actions
+└── requirements.txt           # List of Python dependencies
+```
+
+## Getting Started
 
 ### Prerequisites
-*   Docker Desktop (Optional, for containerized run)
-*   Python 3.9+ (For local execution)
+*   **Operating System**: Windows, Linux (Ubuntu), or macOS.
+*   **Python**: Version 3.9 or higher.
+*   **Docker**: Optional, for containerized execution.
 
-### Method 1: Docker Deployment
-To build and launch the application container:
+### Installation
+
+**1. Clone the Repository**
+```bash
+git clone https://github.com/kalesha681/autonomous-signature-analysis.git
+cd autonomous-signature-analysis
+```
+
+**2. Create a Virtual Environment (Recommended)**
+It's best practice to keep dependencies isolated.
+```bash
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
+```
+
+**3. Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+## Theory & Mathematics
+
+The system processes raw voltage signals $v(t)$ to extract meaningful power quality signatures.
+
+### 1. Root Mean Square (RMS) Analysis
+The RMS value is the fundamental metric for voltage stability. It represents the effective DC heating value of the AC waveform.
+$$V_{rms} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} v[i]^2}$$
+
+*   **Application**: Used to detect **Voltage Sags** ($V_{rms} < 0.9$ p.u.) and **Swells** ($V_{rms} > 1.1$ p.u.).
+
+### 2. Spectral Analysis (FFT)
+To detect harmonic distortion, we transform the time-domain signal into the frequency domain using the Discrete Fourier Transform (DFT):
+$$X_k = \sum_{n=0}^{N-1} x_n \cdot e^{-i 2 \pi k n / N}$$
+
+*   **Application**: We calculate Total Harmonic Distortion (THD) to identify non-linear load faults.
+    $$THD = \frac{\sqrt{\sum_{n=2}^{\infty} V_n^2}}{V_{fundamental}}$$
+
+### 3. Unsupervised Anomaly Detection
+We employ an **Isolation Forest** (iForest) algorithm for non-deterministic fault detection.
+*   **Concept**: Anomalies are "few and different".
+*   **Logic**: The algorithm isolates observations by randomly selecting a feature and then randomly selecting a split value. Anomalies have shorter path lengths in the random trees.
+*   **Why use it?**: It allows the meter to flag "Unknown" issues that were not explicitly programmed in the rule base.
+
+## Usage
+
+The entire system is controlled via the dashboard.
+
+### 1. Visual Simulation (GUI)
+Run the Streamlit dashboard to see the oscilloscope and spectrum analyzer in real-time.
+
+```bash
+# Windows
+.\run_app.bat
+
+# Linux/Mac
+streamlit run dashboard/app_main.py
+```
+
+### 2. Docker Mode (Headless/Cloud)
+Run the application as a containerized service.
 
 ```bash
 docker build -t smart-meter-app .
 docker run -p 8501:8501 smart-meter-app
 ```
-The dashboard will be accessible at `http://localhost:8501`.
 
-### Method 2: Local Python Execution
-To run the application directly on the host machine:
+## Results & Analysis
 
-1.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+The framework provides immediate visual and textual feedback on standard power quality events.
 
-2.  **Launch Dashboard:**
-    ```bash
-    # Windows
-    run_app.bat
-    
-    # Linux/Mac
-    streamlit run dashboard/app_main.py
-    ```
+### Diagnostic Performance
 
-### Testing
-Automated unit tests verified by the CI/CD pipeline can be executed locally to ensure system integrity:
-```bash
-python -m unittest discover tests
-```
+| Fault Type | Detection Method | Threshold / Logic | Characteristics |
+| :--- | :--- | :--- | :--- |
+| **Voltage Sag** | RMS Analysis | $< 0.9 \times V_{nom}$ | Instantaneous detection (< 20ms lag). |
+| **Voltage Swell** | RMS Analysis | $> 1.1 \times V_{nom}$ | Robust against random noise. |
+| **Harmonics** | FFT + THD | $> 5\%$ THD | Accurate spectral decomposition of 3rd, 5th, 7th orders. |
+| **Unknown** | Isolation Forest | Path Length Outlier | Flags unexpected signal deviations (e.g., Gaussian noise attacks). |
 
-## System Outputs
+### Visual Comparison
+*   **Oscilloscope View**: Shows the raw $v(t)$ waveform. Sags appear as amplitude dips; Harmonics appear as distorted/jagged waves.
+*   **Spectrum View**: Shows the $V(f)$ bar chart. Harmonic faults show distinct spikes at 150Hz, 250Hz, etc.
 
-The primary output of the system is an interactive real-time Dashboard that provides:
+## Contributing
 
-1.  **Time Domain Analysis:** A simulated Oscilloscope view rendering the voltage waveform in real-time.
-2.  **Frequency Domain Analysis:** A live Spectrum Analyzer displaying the magnitude of frequency components (Harmonics) derived via FFT.
-3.  **Real-Time Diagnostics:** The "Inference Engine" outputs diagnostic status messages such as:
-    *   "Normal Operation"
-    *   "WARNING: Voltage Sag Detected"
-    *   "WARNING: Harmonic Fault Detected"
-    *   "WARNING: Unknown Anomaly Detected (AI)"
-4.  **Telemetry Metrics:** Live values for RMS Voltage, Peak Voltage, and Total Harmonic Distortion (THD).
+Contributions are welcome! Please follow these steps:
 
-## Mathematical Principles
+1.  Fork the repo.
+2.  Create a branch: `git checkout -b feature-new-algorithm`.
+3.  Commit changes: `git commit -m "Add Wavelet Transform"`.
+4.  Push to branch: `git push origin feature-new-algorithm`.
+5.  Submit a Pull Request.
 
-The core signal processing relies on fundamental electrical engineering principles and statistical analysis.
+## Future Work
 
-### 1. Fast Fourier Transform (FFT)
-The system converts the time-domain signal $v(t)$ into the frequency domain $V(f)$ to identify spectral content.
-*   **Implementation:** `scipy.fft`
-*   **Purpose:** To isolate the magnitude of individual harmonic orders (3rd, 5th, 7th).
+1.  **Hardware-in-the-Loop**: Porting the `inference/` logic to an ESP32 microcontroller.
+2.  **Advanced Signal Processing**: Implementation of Wavelet Transform for transient detection.
+3.  **Cloud Integration**: MQTT connectivity to AWS IoT Core.
 
-### 2. Root Mean Square (RMS)
-Voltage magnitude is calculated using the RMS formula to determine effective power:
-$$V_{rms} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} v_i^2}$$
-*   **Usage:** Detection of Voltage Sags ($< 0.9$ p.u.) and Swells ($> 1.1$ p.u.).
+## Citation
 
-### 3. Total Harmonic Distortion (THD)
-Power quality is assessed by the ratio of the sum of the powers of all harmonic components to the power of the fundamental frequency:
-$$THD = \frac{\sqrt{\sum_{n=2}^{\infty} V_n^2}}{V_{fundamental}}$$
-*   **Usage:** Detection of non-linear load faults and harmonic pollution.
+If you use this work in your research or studies, please cite:
 
-### 4. Anomaly Detection (Isolation Forest)
-For unknown faults, the system employs an Isolation Forest algorithm. It isolates observations by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
-*   **Logic:** Anomalies are susceptible to isolation and will have shorter path lengths in the ensemble of random trees.
+**Shaik, Kalesha.** "Autonomous Edge-Based Signature Analysis Framework". 2025.
 
-## Conclusion
-
-This project demonstrates a scalable, modular architecture for Industrial IoT solutions. By rigorously separating concerns into Simulation, Processing, Inference, and Presentation layers, and by adhering to DevOps best practices (Docker, CI/CD), it provides a robust foundation for deploying intelligence to the industrial edge. The Hybrid AI approach ensures both reliability (via rules) and adaptability (via unsupervised learning), making it suitable for critical power monitoring applications.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+**Author**: Kalesha Shaik
