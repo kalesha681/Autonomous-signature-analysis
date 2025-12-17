@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+.git/
+.github/
+.vscode/
+venv/
+env/
+.env
+Dockerfile
+.dockerignore
+LICENSE
+README.md
+task.md
+implementation_plan.md
+walkthrough.md
