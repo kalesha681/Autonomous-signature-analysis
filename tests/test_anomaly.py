@@ -38,4 +38,5 @@ class TestAnomalyDetector(unittest.TestCase):
 
     def tearDown(self):
         # Cleanup model file
-        pass 
+        if os.path.exists("data/models/isolation_forest.pkl"):
+            os.remove("data/models/isolation_forest.pkl") 
